@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "algorithm": "cpp",
+        "sstream": "cpp",
+        "optional": "cpp",
+        "variant": "cpp",
+        "any": "cpp",
+        "iostream": "cpp"
+    }
+}
