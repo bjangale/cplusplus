@@ -1,16 +1,28 @@
-//C++14 Features all in one
-
+//C++14 Features all in one#include <iostream>
 #include <iostream>
 #include <functional>
 #include <memory>
 #include <chrono>
+#include <utility>
 
 using  namespace std;
+
+int main();
 /*
 ####################################################################################
+In c++14, compile time integer seqence can be created using std::integer_sequences 
+template 
 */
-void learnIntegerSequence(){
+template <typename T, T... ints>
+void print_sequence(std::integer_sequence<T,ints...> intSeq){
+    cout<<"The sequence size is:"<<intSeq.size()<<":";
+    ((cout<<ints<<' '),...);
+    cout<<endl;
 
+}
+
+void learnIntegerSequence(){
+  print_sequence(std::index_sequence<long long unsigned int,4,5,7,2,8,9,1,8>{});
 }
 /*
 ####################################################################################
