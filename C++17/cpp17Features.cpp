@@ -1,4 +1,6 @@
-#include "cpp17Features.hpp"
+/*
+C++17 Features Demonstrated with Functions and Explanation
+*/
 #include <iostream>
 #include <tuple>
 #include <map>
@@ -19,6 +21,32 @@
 
 using namespace std;
 
+/*Start from main.*/
+int main();
+
+/*List of all features functions*/
+void learnStructuralBinding();
+void learnFallthrough();
+void learnInlineVariable();
+void learnConstExprIf();
+void learnTemplateArgDeductionClass();
+void learnConstexprLambda();
+void learnCaptureThisByVAlueInLambda();
+void learnNodiscardMaybeUnusedAttribute();;
+void learnNestedNamespaces();
+void learnOptional();
+void learnVariant();
+void learnAnyContainer();
+void learnFoldingExpression();
+void learnSelectAndIfwithInitializer();
+void learnApplyFeature();
+void learnInvokeFeatures();
+void learnStringView();
+void learnByte();
+void learnSplicingForMapAndSet();
+void learnParallelAlgorithm();
+
+/* Entry point function */
 int main(){
     learnStructuralBinding();
     return 0;
@@ -42,6 +70,8 @@ Point getStartPoint(){
 }
 
 void learnStructuralBinding(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     auto [age,height,name] = getPerson();
     cout<<"age : "<<age<<" Height : "<<height<<" Name : "<<name<<endl;
 
@@ -66,6 +96,8 @@ void learnStructuralBinding(){
  want to document or when you want to suppress warnings about fall-throughs.
 */
 void learnFallthrough(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     char x = 'B';
 
     switch(x){
@@ -74,7 +106,7 @@ void learnFallthrough(){
             break;
         case 'B':
             cout<<"B"<<endl;
-            [[fallthrough]] //intentional 
+            //[[fallthrough]]; //intentional 
         case 'C':
             cout<<"C"<<endl;
             break;
@@ -112,6 +144,8 @@ struct S{
    static inline int count{0};
 };
 void learnInlineVariable(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     cout<<"configVal = "<<configVal<<endl;
     S s;
     cout<<"id = "<<s.id<<endl;
@@ -152,6 +186,8 @@ void printSize(const T& container){
 }
 
 void learnConstExprIf(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     static_assert(isIntergral<int>() == true);
     static_assert(isIntergral<char>() == true);
     static_assert(isIntergral<float>() == false);
@@ -186,6 +222,8 @@ void print() const {
 };
 
 void learnTemplateArgDeductionClass(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     Pair p1(12,34.65);
     p1.print();
 
@@ -206,6 +244,7 @@ providing efficiency benefits and enabling more advanced compile-time programmin
 techniques in C++.
 */
 void learnConstexprLambda(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
     /*The first constexpr specifies that the lambda function itself is constexpr, 
       meaning that it can be evaluated at compile time.
       The second constexpr specifies that the lambda function's operator() 
@@ -251,6 +290,8 @@ public:
     }
 };
 void learnCaptureThisByVAlueInLambda(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     function<void(int&)> lambda;
     {
         ValueMultiplier obj(2);
@@ -285,11 +326,13 @@ and is intended.
 }
 
 void learnNodiscardMaybeUnusedAttribute(){
-    [[maybe_unused]] int j = 20; //Avoid warning for unused variable if -Wall option is used
-   int result = computeDivision(20,0);//Warnig if return value is ignored
-   cout<<"Result = "<<result<<endl;
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
 
-   learnNestedNamespaces();
+    [[maybe_unused]] int j = 20; //Avoid warning for unused variable if -Wall option is used
+    int result = computeDivision(20,0);//Warnig if return value is ignored
+    cout<<"Result = "<<result<<endl;
+
+    learnNestedNamespaces();
 }
 
 /*
@@ -300,6 +343,8 @@ namespace A::B::C{
     int num;
 }
 void learnNestedNamespaces(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     A::B::C::num = 100;
     cout<<"Nested namespace A::B::C::num = "<<A::B::C::num<<endl;
 
@@ -340,6 +385,8 @@ void printMessage(const std::string& message,
     }
 }
 void learnOptional(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     std::string str = "465";
     auto result = convertStringToInt(str);
     if(result.has_value()){
@@ -386,6 +433,8 @@ Operand add(const Operand& op1,const Operand& op2){
     }
 }
 void learnVariant(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     try{
         Operand op1 = 20;
         Operand op2 = 14.5;
@@ -413,6 +462,8 @@ std::any provides a flexible way to store and retrieve values of unknown or vary
 types, making it useful for implementing generic or polymorphic behavior in C++ programs.
 */
 void learnAnyContainer(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     std::any value;
     value = 20;
     if(value.has_value())
@@ -462,6 +513,8 @@ constexpr bool allGreaterThan(int threshold, Args... args){
 }
 
 void learnFoldingExpression(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     cout<<sum(1,2,3)<<endl;
 
     vector<int> vec;
@@ -486,6 +539,8 @@ It helps to keep the code more concise and reduces the scope of variables, makin
 code easier to understand and maintain.
 */
 void learnSelectAndIfwithInitializer(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     int x = 2;
 
     switch(int y = x * 2; y){
@@ -518,6 +573,8 @@ in situations where you have a function that accepts multiple arguments, and you
 pass these arguments as a tuple.
 */
 void learnApplyFeature(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     auto sum = [](int a, int b){
         return a + b;
     };
@@ -548,6 +605,8 @@ struct Foo{
     }
 };
 void learnInvokeFeatures(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     invoke(callback,5);
 
     Foo foo;
@@ -572,6 +631,8 @@ demonstrating its utility in real-world applications.
 */
 
 void learnStringView(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     string_view str1 = "Hello, string_view";
     //str2 holds same view, no extra copy of Hello, string_view
     string_view str2(str1);
@@ -615,6 +676,8 @@ Data deserialize(const vector<std::byte>& buffer){
 }
 
 void learnByte(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+
     std::byte b{0x7f};
     cout<<to_integer<int>(b)<<endl;
 
@@ -635,6 +698,7 @@ The ability to move elements without reallocation or copying can significantly i
 the performance of programs that require frequent modifications to container elements.
 */
 void learnSplicingForMapAndSet(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
 
     map<int,string> map1 = {{1,"one"},{2,"two"},{3,"three"}};
     map<int,string> map2 = {{4,"four"},{5,"five"}};
@@ -659,6 +723,8 @@ The three execution policies provided are:
     std::execution::par_unseq   : Parallel and vectorized execution.
 */
 void learnParallelAlgorithm(){
+    cout<<"--------------"<<__func__<<"--------------"<<endl;
+    
     vector<int> vec(10);
 
     std::generate(vec.begin(),vec.end(),std::rand);
