@@ -2,6 +2,7 @@
  *In C++, thread can be created with using callable types like function pointer, lambda,
  *fuction object, class member function. In this file we will see examples with all
  *callable types.
+ *
  *Thread is launched when std::thread object is created, it ins need to be decided wheather
  *to wait for it to finish by calling join() or or leave it run to run on its own in background
  *by calling detach(). if detach() or join() is not called before std::thread is destoyed then
@@ -9,6 +10,23 @@
  *
  * std::terminate() defalt terminate handler is abort, behaviour can be redefined by calling
  * std::set_terminate(myTerminate)
+ *
+ * std::thread::hardware_concurrency() functions returns an indication of number threads that
+ * can truely run concurrently for given execution program.
+ *
+ * std::this_thread::yield(); provides hints to implementation to reschedule/suspend execution
+ * of current thread, allowing other threads to run. The exact behaviour is implementation specific.
+ *
+ * The function std::this_thread::get_id() return id of the thread type of thread id is std::thread::id
+ *
+ * std::this_thread::sleep_for(std::chrono::microseconds(10)) blocks execution of thread for at lest
+ * specified sleep_duration
+ * std::this_thread::sleep_until(sleep_time) blocks the execution of current thread until specified
+ * sleep_time
+ *
+ * native_handle_type native_handle(); return underlying platfrom-specific thread handle.
+ * Window returns 'HANDLE', POSIX returns 'pthread_t'
+ *
  */
 
 #include <iostream>
@@ -19,6 +37,7 @@
 #include <algorithm>
 #include <functional>
 #include <utility>
+#include <pthread.h>
 
 /**Thread using function pointer. */
 void FunctionPointerTask(int x, int y)
@@ -245,7 +264,8 @@ void ThreadWithPassByRValueRef()
  */
 void DoSomeOperatoion()
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    std::this_thread::yield();
     std::cout << "Do some operation" << std::endl;
 }
 void DoSomeOtherOperation()
@@ -320,12 +340,14 @@ void TestSpawnThread(int n)
 void SpawnNumOfThreadsRuntimeAndWait()
 {
     unsigned long int maxThreds = 5;
-    const unsigned long int numThread = std::thread::hardware_concurrency();
+    const unsigned long int hardwareThread = std::thread::hardware_concurrency();
     std::vector<std::thread> threads;
 
-    maxThreds = std::max(numThread, maxThreds);
+    int numThread = std::min(hardwareThread, maxThreds);
+    std::cout << "Number of hardware thread : " << hardwareThread
+              << " Max threads to run : " << maxThreds << std::endl;
 
-    for (int i = 1; i <= maxThreds; i++)
+    for (int i = 1; i <= numThread; i++)
     {
         // threads.push_back(std::thread(TestSpawnThread, i));
         threads.emplace_back(TestSpawnThread, i);
@@ -335,6 +357,37 @@ void SpawnNumOfThreadsRuntimeAndWait()
                   std::mem_fn(&std::thread::join));
 
     // for (auto &t : threads){t.join();}
+}
+
+/**
+ * native_handle_type native_handle(); return underlying platfrom-specific thread handle.
+ * Window returns 'HANDLE', POSIX returns 'pthread_t'
+ */
+void TestNativeHandle()
+{
+    std::cout << "Testing native handle" << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+}
+
+void ThreadNativeHandle()
+{
+    std::thread t1{TestNativeHandle};
+    // std::thread::native_handle_type
+    //     nativeHandle = t1.native_handle();
+    pthread_t nativeHandle = t1.native_handle();
+
+    // set thread scheduling policy to round robin
+    sched_param schParam;
+    schParam.sched_priority = 20;
+    if (pthread_setschedparam(nativeHandle, SCHED_RR, &schParam) == 0)
+    {
+        std::cout << "Thread scheduling policy set to round robin" << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to set thread scheduling policy" << std::endl;
+    }
+    t1.join();
 }
 
 /** main function */
@@ -351,4 +404,5 @@ int main()
     ThreadTrasnferOfOwnership();
     ThreadScopedTransferOwnership();
     SpawnNumOfThreadsRuntimeAndWait();
+    ThreadNativeHandle();
 }

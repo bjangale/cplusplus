@@ -1,4 +1,4 @@
-//Example Detaching thread to handle other doucment document   
+// Example Detaching thread to handle other doucment document
 void edit_document(std::string const &filename)
 {
     open_document_and_display_gui(filename);
@@ -8,9 +8,9 @@ void edit_document(std::string const &filename)
         if (cmd.type == open_new_document)
         {
             std::string const new_name = get_filename_from_user();
-            //if the user chooses to open new document you prompt them 
-            //for document to open start a new thread to open that 
-            //document and then detach it.            
+            // if the user chooses to open new document you prompt them
+            // for document to open start a new thread to open that
+            // document and then detach it.
             std::thread t(edit_document, new_name);
             t.detach();
         }
@@ -20,3 +20,63 @@ void edit_document(std::string const &filename)
         }
     }
 }
+
+######################################################################################################
+Mutexes : Mutexes are used to prevent data races by ensuring that only one thread can access critical
+          section of code at a time.
+1. std::mutex mtx;
+    mtx.lock()      - locks the mutex if available.if locked calling thread owns the mutex until it
+                      calls unlock()
+    mtx.unlock()    - unlocks the mutex. 
+    mtx.try_lock()  - try to locks the mutex, return true if locked successfully false otherwise
+    mtx.native_handle() - return platform-specific native handle. 
+
+2. std::timed_mutex tmtx;
+    tmtx.lock()     - locks the mutex, blocks if the mutex is not available
+    tmtx.try_lock() - tries to lock the mutex, returns if the mutex is not available
+    tmtx.try_lock_for() - tries to lock the mutex, returns if the mutex has been
+                         unavailable for the specified timeout duration
+    tmtx.try_lock_until() - tries to lock the mutex, returns if the mutex has been
+                            unavailable until specified time point has been reached
+    tmtx.unlock()       - unlocks the mutex
+
+3. std::recursive_mutex - allows same thread to lock the mutex multiple times. 
+
+4. std::lock_guard<std::mutex> guard(mtx)
+                    - RAII style mechanism for owning a mutex for duration of scoped block.
+                      provides convinient way to lock and unlock mutex automatically. 
+5. std::lock(MutexTypes&... mtxs) 
+                    - function in C++ is used to lock multiple mutexes simultaneously without 
+                      causing deadlock. It ensures that all mutexes are locked or none are locked. 
+                      If it cannot lock all mutexes, it will unlock any mutexes it has already locked and try again.          
+5. std::unique_lock<std::mutex>  
+                    - unique_lock provides more flexlibility such as differed locking, 
+                      time locking, manual unlocking. 
+    lock
+	locks (i.e., takes ownership of) the associated mutex
+
+    try_lock
+	    tries to lock (i.e., takes ownership of) the associated mutex without blocking
+
+    try_lock_for
+	    attempts to lock (i.e., takes ownership of) the associated TimedLockable mutex, returns 
+	    if the mutex has been unavailable for the specified time duration
+
+    try_lock_until
+	    tries to lock (i.e., takes ownership of) the associated TimedLockable mutex, returns if 
+	    the mutex has been unavailable until specified time point has been reached
+
+    unlock
+	    unlocks (i.e., releases ownership of) the associated mutex
+
+Modifiers:
+    swap
+	    swaps state with another std::unique_lock
+    release
+	    disassociates the associated mutex without unlocking (i.e., releasing ownership of) it
+    Observers:
+    mutex
+	    returns a pointer to the associated mutex
+    owns_lock
+	tests whether the lock owns (i.e., has locked) its associated mutex 
+                      
