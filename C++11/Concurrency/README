@@ -169,3 +169,154 @@ Modifiers:
             std::call_once(resource_flag,init_resource);
             resource_ptr->do_something();
         }
+
+######################################################################################################
+1. std::condition_variable :
+    std::condition_variable and std::condition_variable_any. Both of
+    these are declared in the <condition_variable> library header. In both cases, they
+    need to work with a mutex in order to provide appropriate synchronization; the former 
+    is limited to working with std::mutex, whereas the latter can work with anything
+    that meets some minimal criteria for being mutex-like, hence the _any suffix. Because
+    std::condition_variable_any is more general, there’s the potential for additional
+    costs in terms of size, performance, or operating system resources, so std::condition_
+    variable should be preferred unless the additional flexibility is required.
+
+    Notification:
+    notify_one
+        notifies one waiting thread
+    notify_all
+        notifies all waiting threads
+    Waiting:
+        wait
+            blocks the current thread until the condition variable is awakened
+        wait_for
+            blocks the current thread until the condition variable is awakened or 
+            after the specified timeout duration
+        wait_until
+            blocks the current thread until the condition variable is awakened or 
+            until specified time point has been reached
+    Native handle:
+        native_handle
+            returns the native handle
+
+    void wait( std::unique_lock<std::mutex>& lock );
+    template< class Predicate >
+    void wait( std::unique_lock<std::mutex>& lock, Predicate pred );
+    predicate is called while holding the lock; if condition is satisfied (predicate return true) 
+    it return with holding the lock, if condition isn't satisfied wait() unlocks the mutex and puts
+    the thread in a blocked or waiting state. 
+
+    If the condition hasn’t been satisfied, the thread unlocks the
+    mutex and resumes waiting. This is why you need the std::unique_lock rather than
+    the std::lock_guard—the waiting thread must unlock the mutex while it’s waiting
+    and lock it again afterward, and std::lock_guard doesn’t provide that flexibility. 
+    If the mutex remained locked while the thread was sleeping, the data-preparation
+    thread wouldn’t be able to lock the mutex to add an item to the queue, and the waiting 
+    thread would never be able to see its condition satisfied
+
+    During a call to wait(), a condition variable may check the
+    supplied condition any number of times; however, it always does so with the mutex
+    locked and will return immediately if (and only if) the function provided to test the
+    condition returns true.
+
+2. Waiting for one-off event with future:
+	The C++ Standard Library models this sort of one-off event with something called
+	a future. If a thread needs to wait for a specific one-off event, it somehow obtains a
+	future representing this event. The thread can then periodically wait on the future for
+	short periods of time to see if the event has occurred (check the departures board)
+	while performing some other task (eating in the overpriced café) in between checks.
+	Alternatively, it can do another task until it needs the event to have happened before it
+	can proceed and then just wait for the future to become ready. A future may have data
+	associated with it (such as which gate your flight is boarding at), or it may not. Once an
+	event has happened (and the future has become ready), the future can’t be reset.
+	There are two sorts of futures in the C++ Standard Library, implemented as two
+	class templates declared in the <future> library header: unique futures (std::future<>)
+	and shared futures (std::shared_future<>). These are modeled after std::unique_ptr
+	and std::shared_ptr. An instance of std::future is the one and only instance that
+	refers to its associated event, whereas multiple instances of std::shared_future may
+	refer to the same event. In the latter case, all the instances will become ready at the
+	same time, and they may all access any data associated with the event. 
+
+3. Returning values from background task:
+	You could start a new thread to perform the calculation,but that means you have to take 
+    care of transferring the result back, because std::thread doesn’t provide a direct mechanism 
+    for doing so. This is where the std::async function template (also declared in the 
+    <future> header) comes in. You use std::async to start an asynchronous task for which you 
+    don’t need the result right away. Rather than giving you back a std::thread object to wait on,
+	std::async returns a std::future object, which will eventually hold the return value
+	of the function. When you need the value, you just call get() on the future, and the
+	thread blocks until the future is ready and then returns the value. The following listing
+	shows a simple example.
+    
+    #include <future>
+    #include <iostream>
+    int find_the_answer_to_ltuae();
+    void do_other_stuff();
+    int main()
+    {
+        std::future<int> the_answer=std::async(find_the_answer_to_ltuae);
+        do_other_stuff();
+        std::cout<<"The answer is "<<the_answer.get()<<std::endl;
+    }
+
+    std::async allows you to pass additional arguments to the function by adding extra
+    arguments to the call, in the same way that std::thread does. If the first argument is
+    a pointer to a member function, the second argument provides the object on which to
+    apply the member function (either directly, or via a pointer, or wrapped in std::ref), 
+    and the remaining arguments are passed as arguments to the member functi`on. 
+
+	By default, it’s up to the implementation whether std::async starts a new thread, or
+	whether the task runs synchronously when the future is waited for. In most cases this is
+	what you want, but you can specify which to use with an additional parameter to
+	std::async before the function to call. This parameter is of the type std::launch, and
+	can either be std::launch::deferred to indicate that the function call is to be
+	deferred until either wait() or get() is called on the future, std::launch::async to
+	indicate that the function must be run on its own thread, or std::launch::deferred |
+	std::launch::async to indicate that the implementation may choose. This last option
+	is the default. If the function call is deferred, it may never actually run. For example:
+	
+    auto f6=std::async(std::launch::async,Y(),1.2); <- run in new thread
+	auto f7=std::async(std::launch::deferred,baz,std::ref(x)); <- run in wait() or get()
+	auto f8=std::async(
+	std::launch::deferred | std::launch::async,
+	baz,std::ref(x)); <- implementation chooses
+	auto f9=std::async(baz,std::ref(x));
+	f7.wait();   <- invokes differed function
+	
+    The use of std::async makes it easy to divide algorithms into tasks that can be run concurrently
+
+4. Associating a task with a future
+    std::packaged_task<> ties a future to a function or callable object. When the std::
+	packaged_task<> object is invoked, it calls the associated function or callable object
+	and makes the future ready, with the return value stored as the associated data. This
+	can be used as a building block for thread pools (see chapter 9) or other task management 
+    schemes, such as running each task on its own thread, or running them all
+	sequentially on a particular background thread. If a large operation can be divided into
+	self-contained sub-tasks, each of these can be wrapped in a std::packaged_task<>
+	instance, and then that instance passed to the task scheduler or thread pool. This
+	abstracts out the details of the tasks; the scheduler just deals with std::packaged_
+	task<> instances rather than individual functions.
+	
+    The template parameter for the std::packaged_task<> class template is a function signature, 
+    like void() for a function taking no parameters with no return value,
+	or int(std::string&,double*) for a function that takes a non-const reference to a
+	std::string and a pointer to a double and returns an int. When you construct an
+	instance of std::packaged_task, you must pass in a function or callable object that
+	can accept the specified parameters and that returns a type convertible to the specified 
+    return type. The types don’t have to match exactly; you can construct a std::packaged_task<double(double)> 
+    from a function that takes an int and returns a float because the types are implicitly convertible.
+	The return type of the specified function signature identifies the type of the std::future<> returned 
+    from the get_future() member function, whereas the argument list of the function signature is used 
+    to specify the signature of the packaged task’s function call operator.
+    
+    template<>
+    class packaged_task<std::string(std::vector<char>*,int)>
+    {
+       public:
+       template<typename Callable>
+       explicit packaged_task(Callable&& f);
+       std::future<std::string> get_future();
+       void operator()(std::vector<char>*,int);
+    }
+
+    
