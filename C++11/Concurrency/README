@@ -50,8 +50,13 @@ Mutexes : Mutexes are used to prevent data races by ensuring that only one threa
                       causing deadlock. It ensures that all mutexes are locked or none are locked. 
                       If it cannot lock all mutexes, it will unlock any mutexes it has already locked and try again.          
 5. std::unique_lock<std::mutex>  
-                    - unique_lock provides more flexlibility such as differed locking, 
-                      time locking, manual unlocking. 
+      - unique_lock provides more flexlibility such as differed locking,
+        time locking, manual unlocking.
+      - if the instance does own the mutex, the destructor must call unlock()
+        and if instance does not own the mutext then it must not call unlock()
+      - std::unique_lock takes more space and is fraction slow to use than 
+        std::lock_gaurd. 
+
     lock
 	locks (i.e., takes ownership of) the associated mutex
 
@@ -80,3 +85,87 @@ Modifiers:
     owns_lock
 	tests whether the lock owns (i.e., has locked) its associated mutex 
                       
+ Locking at appropriate granularity:
+    - You may not need the mutex locke across the call to process, so you manually unlock it 
+      before the call and then lock it again.  
+        void get_and_process_data()
+        {
+            std::unique_lock<std::mutex> my_lock(the_mutex);
+            some_class data_to_process=get_next_data_chunk();
+            my_lock.unlock();
+            result_type result=process(data_to_process);
+            my_lock.lock();
+            write_result(data_to_process,result);
+        }
+
+    - In general lock should be held for only the minimum possible time needed to perform the 
+      required operations. 
+    - This also means that time consuming operations such as acquiring another lock or waiting 
+      for I/O to complete shouldn't be done while holding the lock unless absolutely neccessary. 
+    - Sometimes if you don't hold required locks for the entire duration of an operation, you are
+      exposing yourself to race condition. 
+
+6. Protecting share data during initialization
+    - Lazy initialization is common in single threaded code each operation that require resource
+      first check to see if resource is initialized and then initialize it before use if not. 
+        std::shared_ptr<some_resource> resource_ptr;
+        void foo()
+        {
+            if(!resource_ptr)
+            {
+                resource_ptr.reset(new some_resource);
+            }
+            resource_ptr->do_something();
+        }
+    - If the shared resouce itself is safe for concurrent access, the only part that needs to be
+      protecting when converting this this to multithreaded code is initialization. 
+      Naive translation such as following listing can cause unneccesary serialization of thread 
+      using the resource. 
+
+        std::shared_ptr<some_resource> resource_ptr;
+        std::mutex resource_mutex;
+        void foo()
+        {
+            std::unique_lock<std::mutex> lk(resource_mutex);
+            if(!resource_ptr)
+            {
+                resource_ptr.reset(new some_resource);
+            }
+            lk.unlock();
+            resource_ptr->do_something();
+        }
+    - The better way to do this is, inclusing Double-Checked Locking pattern. 
+        void undefined_behaviour_with_double_checked_locking()
+        {
+            if(!resource_ptr)
+            {
+                std::lock_guard<std::mutex> lk(resource_mutex);
+                if(!resource_ptr)
+                {
+                    resource_ptr.reset(new some_resource);
+                }
+            }
+            resource_ptr->do_something();
+        }
+      It has potential for nasty race condtion because the read outside the lock is not 
+      synchronised with the write done by another thread inside the lock. C++ standard 
+      library provides std::once_flag and std::call_once to hand this situation. 
+    -std::once_flag
+        Rather than locking a mutex and explicitly checking the pointer, every
+        thread can just use std::call_once, safe in the knowledge that the pointer will have
+        been initialized by some thread (in a properly synchronized fashion) by the time
+        std::call_once returns. Use of std::call_once will typically have a lower overhead
+        than using a mutex explicitly, especially when the initialization has already been
+        done, so should be used in preference where it matches the required functionality.
+
+        std::shared_ptr<some_resource> resource_ptr;
+        std::once_flag resource_flag;
+        void init_resource()
+        {
+            resource_ptr.reset(new some_resource);
+        }
+        void foo()
+        {
+            std::call_once(resource_flag,init_resource);
+            resource_ptr->do_something();
+        }
