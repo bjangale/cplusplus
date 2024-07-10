@@ -41,7 +41,7 @@ public:
         {
             throw EmptyStack();
         }
-        auto ptr = std::make_shared(stack.top());
+        auto ptr = std::make_shared<T>(stack.top());
         stack.pop();
         return ptr;
     }
@@ -64,7 +64,31 @@ public:
     }
 };
 
+void TestThreadSafeStackTask(int id, ThreadSafeStack<int> &obj)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        std::cout << "Thread Id : " << id
+                  << " Poped Value : " << *obj.pop()
+                  << std::endl;
+    
+        std::this_thread::yield();
+    }
+}
+
 int main()
 {
     ThreadSafeStack<int> obj;
+    obj.push(1);
+    obj.push(2);
+    obj.push(3);
+    obj.push(4);
+    obj.push(5);
+    obj.push(6);
+
+    std::thread t1(TestThreadSafeStackTask, 1, std::ref(obj));
+    std::thread t2(TestThreadSafeStackTask, 2, std::ref(obj));
+
+    t1.join();
+    t2.join();
 }

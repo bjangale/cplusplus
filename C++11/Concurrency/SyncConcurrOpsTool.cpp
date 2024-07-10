@@ -82,8 +82,15 @@ void TestStdAsyncTask()
 }
 
 /**
- * std::packaged_task wraps a callable object (function, lambda, etc.) and allows its
- * result to be retrieved via a std::future.
+ * The class template std::packaged_task wraps any Callable target (function, lambda 
+ * expression, bind expression, or another function object) so that it can be invoked 
+ * asynchronously. Its return value or exception thrown is stored in a shared state which 
+ * can be accessed through std::future objects. 
+ * 
+ *  std::packaged_task<int(int, int)> task([](int a, int b)
+ *  {
+ *      return std::pow(a, b); 
+ *  });
  */
 int AsyncPackagedTask()
 {
