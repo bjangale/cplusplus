@@ -319,4 +319,91 @@ Modifiers:
        void operator()(std::vector<char>*,int);
     }
 
+######################################################################################################
+1. A simple single-threaded queue implementation
+    void push(T new_value)
+    {
+        std::unique_ptr<node> p(new node(std::move(new_value)));
+        node* const new_tail=p.get();
+        if(tail)
+        {
+            tail->next=std::move(p);
+        }
+        else
+        {
+            head=std::move(p);
+        }
+        tail=new_tail;
+    }
+
+    The most obvious problem is that push() can modify both head f and tail g,
+    so it would have to lock both mutexes. This isn’t too much of a problem, although
+    it’s unfortunate, because locking both mutexes would be possible. The critical problem 
+    is that both push() and pop() access the next pointer of a node: push() updates
+    tail->next e, and try_pop() reads head->next d. If there’s a single item in the
+    queue, then head==tail, so both head->next and tail->next are the same object,
+    which therefore requires protection. Because you can’t tell if it’s the same object 
+    without reading both head and tail, you now have to lock the same mutex in both push()
+    and try_pop(), so you’re no better off than before. Is there a way out of this dilemma?
+
+    ENABLING CONCURRENCY BY SEPARATING DATA
+    You can solve this problem by preallocating a dummy node with no data to ensure that
+    there’s always at least one node in the queue to separate the node being accessed at
+    the head from that being accessed at the tail. For an empty queue, head and tail now
+    both point to the dummy node rather than being NULL. This is fine, because
+    try_pop() doesn’t access head->next if the queue is empty. If you add a node to the
+    queue (so there’s one real node), then head and tail now point to separate nodes, so
+    there’s no race on head->next and tail->next.
+
+    template<typename T>
+    class queue
+    {
+        private:
+        struct node
+        {
+            std::shared_ptr<T> data;
+            std::unique_ptr<node> next;
+        };
+        std::unique_ptr<node> head;
+        node* tail;
+        public:
+        queue():head(new node),tail(head.get()){}
+        queue(const queue& other)=delete;
+        queue& operator=(const queue& other)=delete;
+        
+        std::shared_ptr<T> try_pop()
+        {
+            if(head.get()==tail)
+            {
+                return std::shared_ptr<T>();
+            }
+            std::shared_ptr<T> const res(head->data);
+            std::unique_ptr<node> old_head=std::move(head);
+            head=std::move(old_head->next);
+            return res;
+        }
+    
+        void push(T new_value)
+        {
+            std::shared_ptr<T> new_data(
+            std::make_shared<T>(std::move(new_value)));
+            std::unique_ptr<node> p(new node);
+            tail->data=new_data;
+            node* const new_tail=p.get();
+            tail->next=std::move(p);
+            tail=new_tail;
+        }
+    }
+
+    The new node you create is going to be the new dummy node, so you don’t need 
+    to supply the new_value to the constructor i. Instead, you set the data on
+    the old dummy node to your newly allocated copy of the new_value
+    I’m sure you’re wondering what these changes buy you and how they help
+    with making the queue thread-safe. Well, push() now accesses only tail, not head,
+    which is an improvement. try_pop() accesses both head and tail, but tail is
+    needed only for the initial comparison, so the lock is short-lived. The big gain 
+    is that the dummy node means try_pop() and push() are never operating on the same
+    node, so you no longer need an overarching mutex. So, you can have one mutex for
+    head and one for tail.
+
     
