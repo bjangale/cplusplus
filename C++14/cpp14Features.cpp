@@ -257,7 +257,7 @@ void learnDecltypeAuto(){
 
 /*
 ####################################################################################
-Relaxing contrain on constexpr
+Relaxing constrain on constexpr
  In C++11, constexpr functions were required to have a single return statement and 
  could only contain a limited set of operations. C++14 relaxed these restrictions, 
  allowing constexpr functions to have multiple return statements, loops (including 
