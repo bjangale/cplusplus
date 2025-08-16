@@ -2,7 +2,7 @@
 #include <string>
 #include <thread>
 
-#include "lockfreequeue.hpp"
+#include "LockFreeQueue.hpp"
 constexpr size_t queue_capacity = 4;
 
 class LockFreeQueueTest : public ::testing::Test {

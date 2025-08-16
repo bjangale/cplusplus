@@ -20,7 +20,6 @@ template <typename T>
 class LockFreeQueue {
 public:
 
-
 explicit LockFreeQueue(size_t _capacity);
 
     // Enqueue with move semantics

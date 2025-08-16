@@ -253,8 +253,6 @@ inline bool enqueue_callable(Pool& pool, F&& f) {
     return pool.enqueue_raw(&RawThunk<Fn>::run, holder, &RawThunk<Fn>::del);
 }
 
-//#include "ultra_low_latency_thread_pool.hpp"
-
 int main() {
     LowLatencyThreadPool pool(4, 1024, /*spin_loops=*/512);
 
