@@ -114,7 +114,7 @@ void genericLambdaAndLambdaCaptureInitializer(){
         ++r;
         return r + j;
     };
-    ////return 13  and set x=2
+    ////return 13  and set j=2
     cout<<f()<<endl;
 
     lambdaCaptureWithCallback();
@@ -289,7 +289,7 @@ void learnConstexpr(){
     cout<<"Compile time result = "<<result<<endl;
     int y = 4;
     //using constexpr function at run time 
-    //called runtime with useser defined value
+    //called runtime with user defined value
     int result2 = factorial(y);
     cout<<"Run time result2 = "<<result2<<endl;
 

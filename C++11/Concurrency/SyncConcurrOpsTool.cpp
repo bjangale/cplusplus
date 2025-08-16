@@ -54,7 +54,7 @@ void TestFutureAndPromise()
  * std::async
  * std::async is a higher-level abstraction that runs a function asynchronously and
  * returns a std::future to retrieve the result. std::thread does not provide any
- * direct mechanism to trasfer back the result.
+ * direct mechanism to transfer back the result.
  * 
  * std::launch::async: The function is run asynchronously (in a new thread).
  * std::launch::deferred: The function is run when the result is needed (lazy evaluation).
@@ -101,13 +101,13 @@ void TestPackagedTask()
 {
     //Wraps the AsyncPackagedTask in package_task
     std::packaged_task<int()> task(AsyncPackagedTask);
-    //Get the futur associated with task
-    std::future<int> futurObj = task.get_future();
+    //Get the future associated with task
+    std::future<int> futureObj = task.get_future();
     //start a thread to run the task
     std::thread t1(std::move(task));
 
     //Get the result from the future
-    int result = futurObj.get();
+    int result = futureObj.get();
     std::cout<<__FUNCTION__<<" The result is : "<<result<<std::endl;
 
     t1.join();

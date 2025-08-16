@@ -3,10 +3,10 @@
  *fuction object, class member function. In this file we will see examples with all
  *callable types.
  *
- *Thread is launched when std::thread object is created, it ins need to be decided wheather
+ *Thread is launched when std::thread object is created, it is need to be decided weather
  *to wait for it to finish by calling join() or or leave it run to run on its own in background
- *by calling detach(). if detach() or join() is not called before std::thread is destoyed then
- *program is terminated, std::thread desctuctor calls std::terminate()
+ *by calling detach(). if detach() or join() is not called before std::thread is destroyed then
+ *program is terminated, std::thread destructor calls std::terminate()
  *
  * std::terminate() defalt terminate handler is abort, behaviour can be redefined by calling
  * std::set_terminate(myTerminate)
@@ -17,7 +17,8 @@
  * std::this_thread::yield(); provides hints to implementation to reschedule/suspend execution
  * of current thread, allowing other threads to run. The exact behaviour is implementation specific.
  *
- * The function std::this_thread::get_id() return id of the thread type of thread id is std::thread::id
+ * The function std::this_thread::get_id() return id of the thread type of thread id is
+ * std::thread::id
  *
  * std::this_thread::sleep_for(std::chrono::microseconds(10)) blocks execution of thread for at lest
  * specified sleep_duration
@@ -104,7 +105,7 @@ class MemberFunctionTask
     int k;
 
 public:
-    MemberFunctionTask(int k_) : k(k_){};
+    MemberFunctionTask(int k_) : k(k_) {};
 
     void memberFuctionPlus(int n)
     {
@@ -122,7 +123,7 @@ void ThreadUsingMemberFunction()
 {
     MemberFunctionTask memFuncTaskObj(10);
 
-    // Pass address of Member funciton, address of object, arguments
+    // Pass address of Member function, address of object, arguments
     std::thread t1(&MemberFunctionTask::memberFuctionPlus, &memFuncTaskObj, 5);
 
     // create thead with static member function
@@ -131,13 +132,13 @@ void ThreadUsingMemberFunction()
     t2.join();
 }
 /**
- * lauch thread in background by calling datach
+ * launch thread in background by calling detach
  * sometimes you may need perform one task in background another in main thread.
- * In this case you can lauch the thread in backgroud by calling detach()
+ * In this case you can launch the thread in background by calling detach()
  *
  * detach() breaks the associate of thread with std::thread object and ensure
  * that std::terminate() won't be called when the std::thread object is destroyed,
- * even though thread is running in backgroud.
+ * even though thread is running in background.
  */
 void backgroundTask(int n)
 {
@@ -152,8 +153,8 @@ void ThreadRunInBackground()
 }
 
 /**
- * join in exception case - if it inteded to call join in no exeception cases
- * you also nedd to call join() in the presence of execption to avoid accidental
+ * join in exception case - if it intended to call join in no exception cases
+ * you also nedd to call join() in the presence of exception to avoid accidental
  * lifetime problem.
  * Ex.
  * std::thread t(my_func);
@@ -233,10 +234,10 @@ void ThreadWithPaasbyReference()
     std::cout << __FUNCTION__ << " Test : k = " << k << std::endl;
 }
 
-/** Passing argurment to thread by r value reference, Ex.
+/** Passing argument to thread by r value reference, Ex.
  * unique_ptr is obj can't be copied but can be only moved.
  * The data within one object is transferred over to another,
- * leaving the orignal object empty.
+ * leaving the original object empty.
  */
 class BigObject
 {

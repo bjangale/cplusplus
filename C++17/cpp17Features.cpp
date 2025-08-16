@@ -293,6 +293,7 @@ void learnCaptureThisByVAlueInLambda(){
     cout<<"--------------"<<__func__<<"--------------"<<endl;
 
     function<void(int&)> lambda;
+    
     {
         ValueMultiplier obj(2);
         lambda = obj.mutiplyValue();
@@ -569,7 +570,7 @@ void learnSelectAndIfwithInitializer(){
 ####################################################################################
 the std::apply function allows you to invoke a function with a tuple of arguments, 
 unpacking the tuple into individual arguments for the function call. This can be useful 
-in situations where you have a function that accepts multiple arguments, and you want to 
+-in situations where you have a function that accepts multiple arguments, and you want to 
 pass these arguments as a tuple.
 */
 void learnApplyFeature(){
@@ -623,6 +624,7 @@ void learnInvokeFeatures(){
 std::string_view is a non-owning view into a sequence of characters. It provides a 
 lightweight, read-only view of a string, without requiring memory allocation or copying. 
 std::string_view is particularly useful for functions and APIs that need to work with 
+
 strings without taking ownership or making unnecessary copies.
 std::string_view does not require a null terminator, making it suitable for working with 
 substrings or binary data
@@ -741,3 +743,4 @@ void learnParallelAlgorithm(){
         cout<<val<<' ';
     cout<<endl;
 }
+ 
